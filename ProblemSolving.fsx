@@ -325,4 +325,24 @@ page 49
 Fence Repair
 POJ 3253
 -------------------------------------------------------------------------*)
-// let solveFenceRepair lengths =
+let solveFenceRepair (lengths: int list) =
+    let rec run xs acc =
+        match xs with
+        | []   -> -1
+        | [x]  -> acc
+        | x::y::rest ->
+            let cost = x + y
+            let xs' = List.sort (cost::rest)
+            run xs' (acc + cost)
+    run (List.sort lengths) 0
+
+solveFenceRepair [8; 5; 8]
+
+
+
+(*-----------------------------------------------------------------------
+page 52
+01 ナップサック問題
+-------------------------------------------------------------------------*)
+let solveKnapsack weightValuePairs weightUB =
+
