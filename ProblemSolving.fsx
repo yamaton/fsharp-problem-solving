@@ -52,7 +52,7 @@ let binSearch target arr =
                    | _  -> helper (mid + 1) hi
     helper 0 (Array.length arr - 1)
 
-let isFourSumEqualTo m arr =
+let solveFourSumEqualTo m arr =
     let series =
         seq {
             for p in arr do
@@ -68,7 +68,7 @@ let isFourSumEqualTo m arr =
     // series |> Seq.isEmpty |> not
     series |> Seq.toList
 
-let ansRaffle = isFourSumEqualTo 15 [| 1 .. 10 |]
+let ansRaffle = solveFourSumEqualTo 15 [| 1 .. 10 |]
 
 (*-----------------------------------------------------------------------
 page 34
@@ -89,7 +89,7 @@ let dfs successors isGoal start =
         }
     helper Set.empty [start]
 
-let partialSumEqualTo k xs =
+let solvePartialSumEqualTo k xs =
     let isGoal (acc, _) = (Seq.sum acc = k)
     let successors (acc: int list, pool) =
         match pool with
@@ -101,7 +101,7 @@ let partialSumEqualTo k xs =
             |> Seq.distinct
             |> Seq.toList
 
-let ansPartialSum = partialSumEqualTo 15 [1 .. 10]
+let ansPartialSum = solvePartialSumEqualTo 15 [1 .. 10]
 
 
 (*-----------------------------------------------------------------------
@@ -122,7 +122,7 @@ let traverse successors start =
     helper start
     visited
 
-let lakeCount grid =
+let solveLakeCount grid =
     let mutable chunks = []
     let n = Array.length grid
     let m = Array.length grid.[0]
@@ -157,7 +157,7 @@ let grid = "W........WW.\n\
             ..W.......W." |> fun s -> s.Split '\n'
                           |> Array.map Array.ofSeq
 
-let ansPaddle = lakeCount grid
+let ansLakeCount = solveLakeCount grid
 
 
 
@@ -173,7 +173,10 @@ let bfs successors isGoal start =
             | []      -> ()
             | (x::xs) ->
                 let node = Seq.head x
-                if isGoal node then yield (List.rev x) else ()
+                if isGoal node then
+                    yield (List.rev x)
+                else
+                    ()
                 if Set.contains node visited then
                     yield! run visited xs
                 else
@@ -229,7 +232,7 @@ let ansMaze = solveMaze maze
 page 42
 硬貨の問題
 -------------------------------------------------------------------------*)
-let minCoinCount amount c1 c5 c10 c50 c100 c500 =
+let solveMinCoinCount amount c1 c5 c10 c50 c100 c500 =
     let rec run acc coins remaining =
         match (coins, remaining) with
         | _, 0    -> Option.Some acc
@@ -242,25 +245,29 @@ let minCoinCount amount c1 c5 c10 c50 c100 c500 =
     let coins = [(500, c500); (100, c100); (50, c50); (10, c10); (5, c5); (1, c1)]
     run [] coins amount
 
-let ansCoinCount = minCoinCount 620 3 2 1 3 0 2
+let ansCoinCount = solveMinCoinCount 620 3 2 1 3 0 2
 
 
 (*-----------------------------------------------------------------------
 page 43
 区間スケジューリング問題
 -------------------------------------------------------------------------*)
-let segmentScheduling starting ending =
-    let rec run acc pairs =
-        match pairs with
-        | []    -> acc
-        | pair::rest ->
-            let _, tf = pair
-            let pairs' = List.filter (fun (time, _) -> time >= tf) rest
-            run (pair::acc) pairs'
-    let pairs = List.zip starting ending |> List.sortBy snd
-    run [] pairs |> List.rev
+let solveSegmentScheduling starting ending =
+    let rec run pairs =
+        seq {
+            match pairs with
+            | []         -> ()
+            | pair::rest ->
+                yield pair
+                let _, tf = pair
+                let pairs' = List.filter (fun (time, _) -> time >= tf) rest
+                yield! run pairs'
+        }
 
-let ansSegmentScheduling = segmentScheduling [1; 2; 4; 6; 8] [3; 5; 7; 9; 10]
+    let pairs = List.zip starting ending |> List.sortBy snd
+    run pairs |> Seq.toList
+
+let ansSegmentScheduling = solveSegmentScheduling [1; 2; 4; 6; 8] [3; 5; 7; 9; 10]
 
 
 
@@ -269,8 +276,7 @@ page 45-46
 Best Cow Line
 POJ 3617
 -------------------------------------------------------------------------*)
-
-let bestCowLine (s: string) =
+let solveBestCowLine (s: string) =
     let rec run arr =
         seq {
             if Array.isEmpty arr then
@@ -286,7 +292,37 @@ let bestCowLine (s: string) =
         }
     run (Array.ofSeq s) |> String.concat ""
 
-let ansBestCowLine = bestCowLine "ACDBCB"
+let ansBestCowLine = solveBestCowLine "ACDBCB"
 
 
 
+
+(*-----------------------------------------------------------------------
+page 47
+Saruman's Army
+POJ 3069
+-------------------------------------------------------------------------*)
+let solveSarumansArmy xs radius =
+    let rec run points =
+        seq {
+            match points with
+            | [] -> ()
+            | x::_  ->
+                let rightMost = points |> Seq.takeWhile (fun y -> y <= x + radius)
+                                       |> Seq.last
+                yield rightMost
+                let points' = List.skipWhile (fun y -> y <= rightMost + radius) points
+                yield! run points'
+        }
+    run xs |> Seq.toList
+
+let ansSarumansArmy = solveSarumansArmy [1; 7; 15; 20; 30; 50] 10
+
+
+
+(*-----------------------------------------------------------------------
+page 49
+Fence Repair
+POJ 3253
+-------------------------------------------------------------------------*)
+// let solveFenceRepair lengths =
