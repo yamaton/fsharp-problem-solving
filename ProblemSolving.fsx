@@ -155,7 +155,7 @@ let grid = "W........WW.\n\
             W.W.W.....W.\n\
             .W.W......W.\n\
             ..W.......W." |> fun s -> s.Split '\n'
-                          |> Array.map (Seq.map char >> Seq.toArray)
+                          |> Array.map Array.ofSeq
 
 let ansPaddle = lakeCount grid
 
@@ -218,7 +218,7 @@ let maze = "#S######.#\n\
             ....#.....\n\
             .####.###.\n\
             ....#...G#" |> fun s -> s.Split '\n'
-                        |> Array.map (Seq.map char >> Seq.toArray)
+                        |> Array.map Array.ofSeq
 
 let ansMaze = solveMaze maze
 
@@ -249,3 +249,44 @@ let ansCoinCount = minCoinCount 620 3 2 1 3 0 2
 page 43
 区間スケジューリング問題
 -------------------------------------------------------------------------*)
+let segmentScheduling starting ending =
+    let rec run acc pairs =
+        match pairs with
+        | []    -> acc
+        | pair::rest ->
+            let _, tf = pair
+            let pairs' = List.filter (fun (time, _) -> time >= tf) rest
+            run (pair::acc) pairs'
+    let pairs = List.zip starting ending |> List.sortBy snd
+    run [] pairs |> List.rev
+
+let ansSegmentScheduling = segmentScheduling [1; 2; 4; 6; 8] [3; 5; 7; 9; 10]
+
+
+
+(*-----------------------------------------------------------------------
+page 45-46
+Best Cow Line
+POJ 3617
+-------------------------------------------------------------------------*)
+
+let bestCowLine (s: string) =
+    let rec run arr =
+        seq {
+            if Array.isEmpty arr then
+                ()
+            else
+                let rev = Array.rev arr
+                if arr <= rev then
+                    yield string arr.[0]
+                    yield! run arr.[1 ..]
+                else
+                    yield string rev.[0]
+                    yield! run rev.[1 ..]
+        }
+    run (Array.ofSeq s) |> String.concat ""
+
+let ansBestCowLine = bestCowLine "ACDBCB"
+
+
+
