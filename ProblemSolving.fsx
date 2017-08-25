@@ -110,7 +110,7 @@ Lake Counting
 POJ No. 2386
 -------------------------------------------------------------------------*)
 let traverse successors start =
-    let mutable visited = Set.empty
+    let mutable visited = p8empty
     let rec helper current =
         visited <- Set.add current visited
         seq {
@@ -336,7 +336,7 @@ let solveFenceRepair (lengths: int list) =
             run xs' (acc + cost)
     run (List.sort lengths) 0
 
-solveFenceRepair [8; 5; 8]
+let ansFenceRepair = solveFenceRepair [8; 5; 8]
 
 
 
@@ -344,5 +344,52 @@ solveFenceRepair [8; 5; 8]
 page 52
 01 ナップサック問題
 -------------------------------------------------------------------------*)
-let solveKnapsack weightValuePairs weightUB =
+// [TODO} Replace dp array with defaultdict
+// [TODO] replace "state" of dp array cell with custom type like (value, history)
+// [TODO] Use deque to remove List.rev
+let solveKnapsack01 weightValuePairs weightUB =
+    let criteria = Seq.map snd >> Seq.sum
+    let f arr (weight, value) =
+            [|
+                for (i, hist) in (Array.indexed arr) do
+                if i - weight >= 0 then
+                    let histAnother = arr.[i - weight]
+                    yield [hist; (weight, value)::histAnother] |> List.maxBy criteria
+                else
+                    yield hist
+            |]
+    let ini = Array.create (weightUB + 1) []
+    let res = List.fold f ini weightValuePairs
+    res |> Array.maxBy criteria
 
+let ansKnapsack01 = solveKnapsack01 [(2, 3); (1, 2); (3, 4); (2, 4)] 5
+
+
+
+(*-----------------------------------------------------------------------
+page 56
+最長共通部分列問題 (longest common subsequence)
+-------------------------------------------------------------------------*)
+// Get item with default value
+// [TODO] replace array with defaultdict
+// [TODO] replace string list with string deque
+let lcs left right =
+    let mutable dp = Map.ofList<int*int, string list> [(-1, -1), []]
+    let n = String.length left
+    let m = String.length right
+    for i in [0 .. n-1] do
+        dp <- dp.Add ((i, -1), [])
+    for j in [0 .. m-1] do
+        dp <- dp.Add ((-1, j), [])
+    for i in [0 .. n-1] do
+        for j in [0 .. m-1] do
+            let item =
+                if left.[i] = right.[j] then
+                    let c = string left.[i]
+                    [c::dp.[i-1, j-1]; dp.[i-1, j]; dp.[i, j-1]] |> List.maxBy List.length
+                else
+                    [dp.[i-1, j]; dp.[i, j-1]] |> List.maxBy List.length
+            dp <- dp.Add ((i, j), item)
+    dp.[n-1, m-1] |> List.rev |> String.concat ""
+
+let ansLCS = lcs "AGGTAB" "GXTXAYB"
