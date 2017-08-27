@@ -15,10 +15,11 @@ let findMaxCircumference (sticks: int list) =
     let makeTriangle = function
         | (a::b::c::_) -> a + b > c
         | _            -> false
-    List.sort sticks |> choose 3
-                     |> Seq.filter makeTriangle
-                     |> Seq.map Seq.sum
-                     |> Seq.max
+    List.sort sticks
+        |> choose 3
+        |> Seq.filter makeTriangle
+        |> Seq.map Seq.sum
+        |> Seq.max
 
 let ansTriangle = findMaxCircumference [2; 3; 4; 5; 10]
 
@@ -97,9 +98,10 @@ let solvePartialSumEqualTo k xs =
         | y::ys -> [(y::acc, ys); (acc, ys)]
     let initial = ([], xs)
     let results = dfs successors isGoal initial
-    results |> Seq.map (fst >> List.rev)
-            |> Seq.distinct
-            |> Seq.toList
+    results
+        |> Seq.map (fst >> List.rev)
+        |> Seq.distinct
+        |> Seq.toList
 
 let ansPartialSum = solvePartialSumEqualTo 15 [1 .. 10]
 
@@ -110,15 +112,15 @@ Lake Counting
 POJ No. 2386
 -------------------------------------------------------------------------*)
 let traverse successors start =
-    let mutable visited = p8empty
+    let mutable visited = Set.empty
     let rec helper current =
         visited <- Set.add current visited
         seq {
             for x in successors current do
-            if not <| Set.contains x visited then
+            if (not << Set.contains x) visited then
                 yield x
         }
-        |> Seq.iter helper
+            |> Seq.iter helper
     helper start
     visited
 
@@ -135,8 +137,8 @@ let solveLakeCount grid =
             if dx <> 0 || dy <> 0 then
                 yield (i + dx, j + dy)
         }
-        |> Seq.filter withinGrid
-        |> Seq.filter isPaddle
+            |> Seq.filter withinGrid
+            |> Seq.filter isPaddle
     for i in 0 .. n - 1 do
         for j in 0 .. m - 1 do
             let tup = (i, j)
@@ -154,13 +156,11 @@ let grid = "W........WW.\n\
             .W.W.....WW.\n\
             W.W.W.....W.\n\
             .W.W......W.\n\
-            ..W.......W." |> fun s -> s.Split '\n'
-                          |> Array.map Array.ofSeq
+            ..W.......W."
+        |> fun s -> s.Split '\n'
+        |> Array.map Array.ofSeq
 
 let ansLakeCount = solveLakeCount grid
-
-
-
 
 (*-----------------------------------------------------------------------
 page 37
@@ -198,16 +198,16 @@ let solveMaze grid =
             yield (i, j-1)
             yield (i, j+1)
         }
-        |> Seq.filter withinGrid
-        |> Seq.filter isPassable
-        |> Seq.toList
+            |> Seq.filter withinGrid
+            |> Seq.filter isPassable
+            |> Seq.toList
     let start = seq {
                     for i in 0 .. n - 1 do
                     for j in 0 .. m - 1 do
                     if grid.[i].[j] = 'S' then
                         yield (i, j)
                 }
-                |> Seq.head
+                    |> Seq.head
     bfs successors isGoal start |> Seq.head
 
 
@@ -220,8 +220,9 @@ let maze = "#S######.#\n\
             .#######.#\n\
             ....#.....\n\
             .####.###.\n\
-            ....#...G#" |> fun s -> s.Split '\n'
-                        |> Array.map Array.ofSeq
+            ....#...G#"
+            |> fun s -> s.Split '\n'
+            |> Array.map Array.ofSeq
 
 let ansMaze = solveMaze maze
 
@@ -306,7 +307,7 @@ let solveSarumansArmy xs radius =
     let rec run points =
         seq {
             match points with
-            | [] -> ()
+            | []    -> ()
             | x::_  ->
                 let rightMost = points |> Seq.takeWhile (fun y -> y <= x + radius)
                                        |> Seq.last
@@ -347,8 +348,8 @@ page 52
 // [TODO} Replace dp array with defaultdict
 // [TODO] replace "state" of dp array cell with custom type like (value, history)
 // [TODO] Use deque to remove List.rev
-let solveKnapsack01 weightValuePairs weightUB =
-    let criteria = Seq.map snd >> Seq.sum
+let inline solveKnapsack01 weightValuePairs weightUB =
+    let criteria = Seq.sumBy snd
     let f arr (weight, value) =
             [|
                 for (i, hist) in (Array.indexed arr) do
@@ -362,7 +363,7 @@ let solveKnapsack01 weightValuePairs weightUB =
     let res = List.fold f ini weightValuePairs
     res |> Array.maxBy criteria
 
-let ansKnapsack01 = solveKnapsack01 [(2, 3); (1, 2); (3, 4); (2, 4)] 5
+let ansKnapsack01 = solveKnapsack01 [(2, 3); (1, 2); (3, 4); (2, 4)] 5 |> List.length
 
 
 
@@ -370,7 +371,6 @@ let ansKnapsack01 = solveKnapsack01 [(2, 3); (1, 2); (3, 4); (2, 4)] 5
 page 56
 最長共通部分列問題 (longest common subsequence)
 -------------------------------------------------------------------------*)
-// Get item with default value
 // [TODO] replace array with defaultdict
 // [TODO] replace string list with string deque
 let lcs left right =
@@ -386,10 +386,91 @@ let lcs left right =
             let item =
                 if left.[i] = right.[j] then
                     let c = string left.[i]
-                    [c::dp.[i-1, j-1]; dp.[i-1, j]; dp.[i, j-1]] |> List.maxBy List.length
+                    [c::dp.[i-1, j-1]; dp.[i-1, j]; dp.[i, j-1]]
+                        |> List.maxBy List.length
                 else
-                    [dp.[i-1, j]; dp.[i, j-1]] |> List.maxBy List.length
+                    [dp.[i-1, j]; dp.[i, j-1]]
+                        |> List.maxBy List.length
             dp <- dp.Add ((i, j), item)
     dp.[n-1, m-1] |> List.rev |> String.concat ""
 
 let ansLCS = lcs "AGGTAB" "GXTXAYB"
+
+
+
+(*-----------------------------------------------------------------------
+page 58
+個数制限なしナップサック問題 (knapsack with replacement)
+-------------------------------------------------------------------------*)
+let inline solveKnapsackWithReplacement weightValuePairs weightUB =
+    let criteria = Seq.sumBy snd
+    let f arr wvpairs =
+        [|
+            for (i, valHistPair) in (Array.indexed arr) do
+                let anotherValHistPairs =
+                    seq {
+                        for (weight, value) in wvpairs do
+                        if i - weight >= 0 then
+                            yield (weight, value)::arr.[i - weight]
+                    }
+                let candidates = seq {yield valHistPair; yield! anotherValHistPairs}
+                let best = Seq.maxBy criteria candidates
+                yield best
+        |]
+    let ini = Array.create (weightUB + 1) []
+    let repeatNum = weightUB / (Seq.map fst weightValuePairs |> Seq.min)
+    let res = Seq.fold f ini (Seq.replicate repeatNum weightValuePairs)
+    res |> Array.maxBy criteria |> List.rev
+
+let ansKnapsackWithReplacement = solveKnapsackWithReplacement [(3, 4); (4, 5); (2, 3)] 7
+
+
+(*-----------------------------------------------------------------------
+page 60
+01 ナップサック問題その 2
+-------------------------------------------------------------------------*)
+
+let ansKnapsackValue =
+    let tuples = solveKnapsack01 [(2, 3); (1, 2); (3, 4); (2, 2)] 5
+    Seq.sumBy snd tuples
+
+
+(*-----------------------------------------------------------------------
+page 62
+個数制限付き部分和問題
+-------------------------------------------------------------------------*)
+// [TODO] Complexity is terrible. Rewreite.
+let solveRestrictedSum intCountPairs target =
+    let f (a, n) = Seq.map ((*) a) [0 .. n]
+    let xss = List.map f intCountPairs
+    let cartesianAdder acc xs = Seq.allPairs acc xs |> Seq.map (fun (tt, x) -> (tt + x))
+    let ini = Seq.singleton 0
+    let res = Seq.fold cartesianAdder ini xss |> Set.ofSeq
+    Set.contains target res
+
+let ansRestrictedSum = solveRestrictedSum (List.zip [3; 5; 8] [3; 2; 2]) 17
+
+
+
+(*-----------------------------------------------------------------------
+page 63
+最長増加部分列問題 (LIS: Longest increasing subsequence)
+-------------------------------------------------------------------------*)
+//
+
+
+
+
+(*-----------------------------------------------------------------------
+page 66
+分割数 (Partitioning)
+-------------------------------------------------------------------------*)
+//
+
+
+
+(*-----------------------------------------------------------------------
+page 67
+重複組合せ (combinations)
+-------------------------------------------------------------------------*)
+//
